@@ -6,8 +6,8 @@ export default function Landing() {
       {/* Hero */}
       <section className="flex-1 flex flex-col items-center justify-center text-center px-6 py-24">
         <div className="text-6xl mb-6">💧</div>
-        <h1 className="text-5xl sm:text-7xl font-black text-gray-900 dark:text-white leading-tight tracking-tight max-w-3xl">
-          "8 cups of water is a scam."
+        <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-gray-900 dark:text-white leading-none tracking-tight whitespace-nowrap">
+          8 cups of water is a scam.
         </h1>
         <p className="mt-6 text-xl text-gray-500 dark:text-gray-400 max-w-xl leading-relaxed">
           Your hydration needs depend on your body, your activities, and the weather outside — not a number someone made up in 1945.
