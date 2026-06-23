@@ -2,14 +2,14 @@ import Link from "next/link";
 
 export default function Landing() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-gray-900 dark:to-gray-800 flex flex-col">
+    <main className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex flex-col">
       {/* Hero */}
       <section className="flex-1 flex flex-col items-center justify-center text-center px-6 py-24">
         <div className="text-6xl mb-6">💧</div>
-        <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-gray-900 dark:text-white leading-none tracking-tight whitespace-nowrap">
+        <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-white leading-none tracking-tight whitespace-nowrap">
           8 cups of water is a scam.
         </h1>
-        <p className="mt-6 text-xl text-gray-500 dark:text-gray-400 max-w-xl leading-relaxed">
+        <p className="mt-6 text-xl text-gray-400 max-w-xl leading-relaxed">
           Your hydration needs depend on your body, your activities, and the weather outside — not a number someone made up in 1945.
         </p>
         <Link
@@ -18,13 +18,13 @@ export default function Landing() {
         >
           Calculate my actual need →
         </Link>
-        <p className="mt-4 text-sm text-gray-400">Free · No sign-up · Powered by AI</p>
+        <p className="mt-4 text-sm text-gray-500">Free · No sign-up · Powered by AI</p>
       </section>
 
       {/* How it works */}
-      <section className="bg-white dark:bg-gray-800/50 py-20 px-6">
+      <section className="bg-gray-800/50 py-20 px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-12">
+          <h2 className="text-3xl font-bold text-white mb-12">
             How HydroAI works
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-8">
@@ -36,11 +36,11 @@ export default function Landing() {
             ].map((item) => (
               <div key={item.step} className="flex flex-col items-center gap-3">
                 <div className="text-4xl">{item.emoji}</div>
-                <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 font-bold text-sm flex items-center justify-center">
+                <div className="w-8 h-8 rounded-full bg-blue-900/40 text-blue-400 font-bold text-sm flex items-center justify-center">
                   {item.step}
                 </div>
-                <h3 className="font-semibold text-gray-800 dark:text-white">{item.title}</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{item.desc}</p>
+                <h3 className="font-semibold text-white">{item.title}</h3>
+                <p className="text-sm text-gray-400 leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -50,7 +50,7 @@ export default function Landing() {
       {/* Why section */}
       <section className="py-20 px-6">
         <div className="max-w-3xl mx-auto space-y-10">
-          <h2 className="text-3xl font-bold text-gray-800 dark:text-white text-center">
+          <h2 className="text-3xl font-bold text-white text-center">
             Why generic hydration advice fails you
           </h2>
           {[
@@ -59,8 +59,8 @@ export default function Landing() {
             { q: "Electrolytes aren't optional", a: "Drinking water without replacing sodium, potassium, and magnesium can cause hyponatremia — a dangerous condition from being over-hydrated with the wrong stuff." },
           ].map((item) => (
             <div key={item.q} className="border-l-4 border-blue-400 pl-6">
-              <h3 className="font-bold text-gray-800 dark:text-white text-lg mb-1">{item.q}</h3>
-              <p className="text-gray-500 dark:text-gray-400 leading-relaxed">{item.a}</p>
+              <h3 className="font-bold text-white text-lg mb-1">{item.q}</h3>
+              <p className="text-gray-400 leading-relaxed">{item.a}</p>
             </div>
           ))}
         </div>
@@ -79,7 +79,7 @@ export default function Landing() {
       </section>
 
       {/* Footer */}
-      <footer className="py-6 text-center text-xs text-gray-400 dark:text-gray-600">
+      <footer className="py-6 text-center text-xs text-gray-600">
         HydroAI · Built with Claude · Not medical advice
       </footer>
     </main>
