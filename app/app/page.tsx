@@ -12,7 +12,9 @@ type Step = "profile" | "activities" | "weather" | "results";
 
 export default function Home() {
   const [step, setStep] = useState<Step>("profile");
-  const [profile, setProfile] = useState<UserProfile | null>(loadProfile);
+  const [profile, setProfile] = useState<UserProfile | null>(() =>
+    typeof window === "undefined" ? null : loadProfile()
+  );
   const [activities, setActivities] = useState<Activity[]>([]);
   const [weather, setWeather] = useState<Weather | null>(null);
   const [result, setResult] = useState<HydrationResult | null>(null);
