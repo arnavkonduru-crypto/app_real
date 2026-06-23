@@ -6,11 +6,18 @@ import StepIndicator from "@/components/ui/StepIndicator";
 import LoginForm from "@/components/auth/LoginForm";
 import PreferredNameForm from "@/components/auth/PreferredNameForm";
 import ProfileForm from "@/components/profile/ProfileForm";
+import ActivityLevelForm from "@/components/profile/ActivityLevelForm";
+import HydrateScreen from "@/components/ui/HydrateScreen";
 import ActivityPicker from "@/components/activities/ActivityPicker";
 import WeatherCard from "@/components/weather/WeatherCard";
 import ResultsDashboard from "@/components/results/ResultsDashboard";
 
-type Step = "login" | "name" | "profile" | "activities" | "weather" | "results";
+type Step = "login" | "name" | "profile" | "activityLevel" | "hydrate" | "activities" | "weather" | "results";
+
+const BG = {
+  backgroundColor: "#f0ede8",
+  backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E\")",
+};
 
 export default function Home() {
   const [step, setStep] = useState<Step>("login");
@@ -24,12 +31,13 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const stepIndex = { login: 0, name: 0, profile: 0, activities: 1, weather: 2, results: 3 }[step];
+  const stepIndex = { login: 0, name: 0, profile: 0, activityLevel: 0, hydrate: 0, activities: 1, weather: 2, results: 3 }[step];
+  const hideStepIndicator = ["login", "name", "activityLevel", "hydrate", "results"].includes(step);
 
   const handleProfile = (p: UserProfile) => {
     saveProfile(p);
     setProfile(p);
-    setStep("activities");
+    setStep("activityLevel");
   };
 
   const handleActivities = (acts: Activity[]) => {
@@ -67,20 +75,16 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-gray-900 dark:to-gray-800 px-4 py-10">
+    <main className="min-h-screen px-4 py-10" style={BG}>
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
-            💧 HydroAI
-          </h1>
+          <h1 className="text-4xl font-bold text-gray-900">💧 HydroAI</h1>
           <p className="text-gray-500 mt-1 text-sm">
             Personalized hydration — built around you, not a formula
           </p>
         </div>
 
-        {!["login", "name", "results"].includes(step) && (
-          <StepIndicator current={stepIndex} />
-        )}
+        {!hideStepIndicator && <StepIndicator current={stepIndex} />}
 
         {loading && (
           <div className="text-center py-16">
@@ -98,17 +102,25 @@ export default function Home() {
 
         {!loading && (
           <>
-            {step === "login" && (
-              <LoginForm onLogin={() => setStep("name")} />
-            )}
+            {step === "login" && <LoginForm onLogin={() => setStep("name")} />}
             {step === "name" && (
               <PreferredNameForm onSubmit={(name) => { setPreferredName(name); setStep("profile"); }} />
             )}
             {step === "profile" && (
               <ProfileForm initial={profile} onSubmit={handleProfile} preferredName={preferredName} />
             )}
+            {step === "activityLevel" && (
+              <ActivityLevelForm
+                preferredName={preferredName}
+                onSubmit={() => setStep("hydrate")}
+                onBack={() => setStep("profile")}
+              />
+            )}
+            {step === "hydrate" && (
+              <HydrateScreen preferredName={preferredName} onHydrate={() => setStep("activities")} />
+            )}
             {step === "activities" && (
-              <ActivityPicker onSubmit={handleActivities} onBack={() => setStep("profile")} />
+              <ActivityPicker onSubmit={handleActivities} onBack={() => setStep("hydrate")} />
             )}
             {step === "weather" && (
               <WeatherCard onConfirm={handleWeather} onBack={() => setStep("activities")} />
