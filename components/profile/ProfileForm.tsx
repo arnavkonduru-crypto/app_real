@@ -7,9 +7,10 @@ import Card from "@/components/ui/Card";
 interface Props {
   initial: UserProfile | null;
   onSubmit: (profile: UserProfile) => void;
+  preferredName?: string;
 }
 
-export default function ProfileForm({ initial, onSubmit }: Props) {
+export default function ProfileForm({ initial, onSubmit, preferredName }: Props) {
   const [form, setForm] = useState<UserProfile>(
     initial ?? { age: 25, weightLbs: 155, heightIn: 68, sex: "male" }
   );
@@ -20,7 +21,7 @@ export default function ProfileForm({ initial, onSubmit }: Props) {
   return (
     <Card className="max-w-md mx-auto">
       <h2 className="text-2xl font-bold mb-1 text-gray-800 dark:text-white">
-        Tell us about yourself
+        {preferredName ? `Hey ${preferredName}, tell us about yourself` : "Tell us about yourself"}
       </h2>
       <p className="text-sm text-gray-500 mb-6">
         Used to personalize your hydration targets.

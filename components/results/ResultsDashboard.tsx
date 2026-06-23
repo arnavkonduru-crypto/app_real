@@ -13,16 +13,17 @@ import StreakTracker from "@/components/streak/StreakTracker";
 interface Props {
   result: HydrationResult;
   onReset: () => void;
+  preferredName?: string;
 }
 
-export default function ResultsDashboard({ result, onReset }: Props) {
+export default function ResultsDashboard({ result, onReset, preferredName }: Props) {
   const [drunkOz, setDrunkOz] = useState(0);
 
   return (
     <div className="max-w-xl mx-auto space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
-          Your Hydration Plan
+          {preferredName ? `${preferredName}'s Hydration Plan` : "Your Hydration Plan"}
         </h2>
         <StreakTracker />
       </div>

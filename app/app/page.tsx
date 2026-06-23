@@ -3,15 +3,18 @@ import { useState } from "react";
 import { UserProfile, Activity, Weather, HydrationResult } from "@/lib/types";
 import { saveProfile, loadProfile } from "@/lib/storage";
 import StepIndicator from "@/components/ui/StepIndicator";
+import LoginForm from "@/components/auth/LoginForm";
+import PreferredNameForm from "@/components/auth/PreferredNameForm";
 import ProfileForm from "@/components/profile/ProfileForm";
 import ActivityPicker from "@/components/activities/ActivityPicker";
 import WeatherCard from "@/components/weather/WeatherCard";
 import ResultsDashboard from "@/components/results/ResultsDashboard";
 
-type Step = "profile" | "activities" | "weather" | "results";
+type Step = "login" | "name" | "profile" | "activities" | "weather" | "results";
 
 export default function Home() {
-  const [step, setStep] = useState<Step>("profile");
+  const [step, setStep] = useState<Step>("login");
+  const [preferredName, setPreferredName] = useState("");
   const [profile, setProfile] = useState<UserProfile | null>(() =>
     typeof window === "undefined" ? null : loadProfile()
   );
@@ -21,7 +24,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const stepIndex = { profile: 0, activities: 1, weather: 2, results: 3 }[step];
+  const stepIndex = { login: 0, name: 0, profile: 0, activities: 1, weather: 2, results: 3 }[step];
 
   const handleProfile = (p: UserProfile) => {
     saveProfile(p);
@@ -56,7 +59,7 @@ export default function Home() {
   };
 
   const reset = () => {
-    setStep("profile");
+    setStep("login");
     setActivities([]);
     setWeather(null);
     setResult(null);
@@ -75,7 +78,9 @@ export default function Home() {
           </p>
         </div>
 
-        {step !== "results" && <StepIndicator current={stepIndex} />}
+        {!["login", "name", "results"].includes(step) && (
+          <StepIndicator current={stepIndex} />
+        )}
 
         {loading && (
           <div className="text-center py-16">
@@ -87,31 +92,29 @@ export default function Home() {
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-600 rounded-xl p-4 text-sm mb-4">
             {error}
-            <button onClick={() => setError(null)} className="ml-2 underline">
-              Dismiss
-            </button>
+            <button onClick={() => setError(null)} className="ml-2 underline">Dismiss</button>
           </div>
         )}
 
         {!loading && (
           <>
+            {step === "login" && (
+              <LoginForm onLogin={() => setStep("name")} />
+            )}
+            {step === "name" && (
+              <PreferredNameForm onSubmit={(name) => { setPreferredName(name); setStep("profile"); }} />
+            )}
             {step === "profile" && (
-              <ProfileForm initial={profile} onSubmit={handleProfile} />
+              <ProfileForm initial={profile} onSubmit={handleProfile} preferredName={preferredName} />
             )}
             {step === "activities" && (
-              <ActivityPicker
-                onSubmit={handleActivities}
-                onBack={() => setStep("profile")}
-              />
+              <ActivityPicker onSubmit={handleActivities} onBack={() => setStep("profile")} />
             )}
             {step === "weather" && (
-              <WeatherCard
-                onConfirm={handleWeather}
-                onBack={() => setStep("activities")}
-              />
+              <WeatherCard onConfirm={handleWeather} onBack={() => setStep("activities")} />
             )}
             {step === "results" && result && (
-              <ResultsDashboard result={result} onReset={reset} />
+              <ResultsDashboard result={result} onReset={reset} preferredName={preferredName} />
             )}
           </>
         )}
