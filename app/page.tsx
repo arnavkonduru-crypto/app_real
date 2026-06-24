@@ -12,8 +12,8 @@ export default function Landing() {
           <Link href="#science" className="hover:text-blue-600 transition-colors">The Science</Link>
         </div>
         <div className="absolute left-1/2 -translate-x-1/2">
-          <span className="text-2xl font-black tracking-tight text-blue-600" style={{ fontFamily: "var(--font-heading)" }}>
-            💧 HydroAI
+          <span className="text-2xl font-black tracking-tight text-blue-600" style={{ fontFamily: "var(--font-heading)", letterSpacing: "-0.02em" }}>
+            Aqua
           </span>
         </div>
         <div className="w-40" /> {/* spacer to balance nav */}
@@ -133,7 +133,7 @@ export default function Landing() {
 
       {/* Footer */}
       <footer className="py-6 text-center text-xs text-gray-400 bg-[#f0ede8]">
-        HydroAI · Built with Claude · Not medical advice
+        Aqua · Built with Claude · Not medical advice
       </footer>
     </main>
   );
