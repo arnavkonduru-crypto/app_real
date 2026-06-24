@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
 
   const prompt = `You are a sports medicine and nutrition expert. Calculate a precise daily hydration plan.
 
-IMPORTANT BASELINE GUIDANCE: Be conservative with the baseline water target. For a sedentary day in mild weather, a healthy adult needs roughly 0.4–0.5 oz per lb of body weight INCLUDING water from food (food typically provides ~20% of daily fluid). Do NOT over-recommend. Only increase meaningfully above this for genuinely hot weather, high humidity, or significant outdoor exposure. Do not add water for planned exercise here — that is tracked separately. A typical baseline for an average adult should land around 70–90 oz, not over 100 oz unless conditions are extreme.
+IMPORTANT BASELINE GUIDANCE: Be conservative with the baseline water target. For a sedentary day in mild weather, a healthy adult needs only about 0.3–0.4 oz per lb of body weight from DRINKING water (food provides additional fluid on top of this, so the drinking target is lower than total needs). Do NOT over-recommend. Only increase modestly above this for genuinely hot weather, high humidity, or significant outdoor exposure. Do not add water for planned exercise here — that is tracked separately. A typical baseline for an average adult should land around 55–70 oz, and should not exceed 85 oz unless conditions are truly extreme.
 
 USER PROFILE:
 - Age: ${profile.age}
