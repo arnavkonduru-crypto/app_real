@@ -78,7 +78,7 @@ export default function Home() {
     <main className="min-h-screen px-4 py-10" style={BG}>
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900">💧 HydroAI</h1>
+          <h1 className="text-4xl font-bold text-gray-900" style={{ letterSpacing: "-0.02em" }}>Aqua</h1>
           <p className="text-gray-500 mt-1 text-sm">
             Personalized hydration — built around you, not a formula
           </p>
@@ -88,7 +88,7 @@ export default function Home() {
 
         {loading && (
           <div className="text-center py-16">
-            <div className="text-4xl animate-bounce mb-4">💧</div>
+            <div className="text-4xl animate-bounce mb-4"></div>
             <p className="text-gray-500">Calculating your plan…</p>
           </div>
         )}
