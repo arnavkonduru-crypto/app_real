@@ -20,7 +20,7 @@ export default function IntakeLogger({ totalOz, onUpdate }: { totalOz: number; o
   return (
     <div>
       <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">
-        💧 Log What You Drank
+        Log What You Drank
       </h3>
       <p className="text-xs text-gray-400 mb-3">
         {logged} oz logged today · {remaining} oz remaining

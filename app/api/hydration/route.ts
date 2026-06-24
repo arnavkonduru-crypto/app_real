@@ -5,36 +5,36 @@ import { UserProfile, Activity, Weather } from "@/lib/types";
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 export async function POST(req: NextRequest) {
-  const { profile, activities, weather } = (await req.json()) as {
+  const { profile, weather, outdoorHours, activities } = (await req.json()) as {
     profile: UserProfile;
-    activities: Activity[];
     weather: Weather;
+    outdoorHours: number;
+    activities?: Activity[];
   };
 
   const activitiesText =
-    activities.length === 0
-      ? "No planned exercise — mostly sedentary day."
-      : activities
-          .map((a) => `${a.name} for ${a.durationMin} minutes at ${a.intensity} intensity`)
-          .join(", ");
+    !activities || activities.length === 0
+      ? "No planned exercise."
+      : activities.map((a) => `${a.name} for ${a.durationMin} min at ${a.intensity} intensity`).join(", ");
 
   const prompt = `You are a sports medicine and nutrition expert. Calculate a precise daily hydration plan.
 
 USER PROFILE:
 - Age: ${profile.age}
-- Weight: ${profile.weightLbs} lbs (${(profile.weightLbs * 0.453592).toFixed(1)} kg)
+- Weight: ${profile.weightLbs} lbs
 - Height: ${Math.floor(profile.heightIn / 12)}ft ${profile.heightIn % 12}in
 - Sex: ${profile.sex}
 
 TODAY'S WEATHER:
-- Temperature: ${weather.tempF}°F (${(((weather.tempF - 32) * 5) / 9).toFixed(1)}°C)
+- Temperature: ${weather.tempF}°F
 - Humidity: ${weather.humidity}%
 - UV Index: ${weather.uvIndex} (${weather.description})
 
-TODAY'S ACTIVITIES:
-${activitiesText}
+OUTDOOR EXPOSURE TODAY: ${outdoorHours} hour(s) of general outdoor time (walking, errands, etc.)
 
-Respond with ONLY valid JSON matching this exact structure (no markdown, no explanation outside JSON):
+PLANNED EXERCISE: ${activitiesText}
+
+Respond with ONLY valid JSON matching this exact structure (no markdown, no extra text):
 {
   "waterOz": <number>,
   "waterMl": <number>,
@@ -42,15 +42,10 @@ Respond with ONLY valid JSON matching this exact structure (no markdown, no expl
   "potassiumMg": <number>,
   "magnesiumMg": <number>,
   "hourlySchedule": [
-    { "time": "7:00 AM", "oz": <number>, "note": "<short note>" },
-    ...8-10 entries across the day...
+    { "time": "7:00 AM", "oz": <number>, "note": "<short note>" }
   ],
-  "drinkSuggestions": [
-    "<suggestion 1>",
-    "<suggestion 2>",
-    "<suggestion 3>"
-  ],
-  "reasoning": "<2-3 sentence explanation of why these numbers, factoring in the weather and activities>"
+  "drinkSuggestions": ["<suggestion 1>", "<suggestion 2>", "<suggestion 3>"],
+  "reasoning": "<2-3 sentences explaining the numbers based on weather, outdoor time, and activities>"
 }`;
 
   try {

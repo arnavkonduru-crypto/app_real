@@ -15,7 +15,7 @@ const barlow = Barlow({
 });
 
 export const metadata: Metadata = {
-  title: "HydroAI — Personalized Hydration",
+  title: "Aqua — Personalized Hydration",
   description: "AI-powered hydration based on your body, activities, and weather.",
 };
 

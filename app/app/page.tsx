@@ -1,18 +1,15 @@
 "use client";
 import { useState } from "react";
-import { UserProfile, Activity, Weather, HydrationResult } from "@/lib/types";
+import { UserProfile, Weather } from "@/lib/types";
 import { saveProfile, loadProfile } from "@/lib/storage";
-import StepIndicator from "@/components/ui/StepIndicator";
 import LoginForm from "@/components/auth/LoginForm";
 import PreferredNameForm from "@/components/auth/PreferredNameForm";
 import ProfileForm from "@/components/profile/ProfileForm";
 import ActivityLevelForm from "@/components/profile/ActivityLevelForm";
-import HydrateScreen from "@/components/ui/HydrateScreen";
-import ActivityPicker from "@/components/activities/ActivityPicker";
 import WeatherCard from "@/components/weather/WeatherCard";
-import ResultsDashboard from "@/components/results/ResultsDashboard";
+import HomeScreen from "@/components/home/HomeScreen";
 
-type Step = "login" | "name" | "profile" | "activityLevel" | "hydrate" | "activities" | "weather" | "results";
+type Step = "login" | "name" | "profile" | "activityLevel" | "weather" | "home";
 
 const BG = {
   backgroundColor: "#f0ede8",
@@ -25,14 +22,7 @@ export default function Home() {
   const [profile, setProfile] = useState<UserProfile | null>(() =>
     typeof window === "undefined" ? null : loadProfile()
   );
-  const [activities, setActivities] = useState<Activity[]>([]);
   const [weather, setWeather] = useState<Weather | null>(null);
-  const [result, setResult] = useState<HydrationResult | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const stepIndex = { login: 0, name: 0, profile: 0, activityLevel: 0, hydrate: 0, activities: 1, weather: 2, results: 3 }[step];
-  const hideStepIndicator = ["login", "name", "activityLevel", "hydrate", "results"].includes(step);
 
   const handleProfile = (p: UserProfile) => {
     saveProfile(p);
@@ -40,95 +30,40 @@ export default function Home() {
     setStep("activityLevel");
   };
 
-  const handleActivities = (acts: Activity[]) => {
-    setActivities(acts);
-    setStep("weather");
-  };
-
-  const handleWeather = async (w: Weather) => {
-    setWeather(w);
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/hydration", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ profile, activities, weather: w }),
-      });
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
-      setResult(data);
-      setStep("results");
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Something went wrong");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const reset = () => {
-    setStep("login");
-    setActivities([]);
-    setWeather(null);
-    setResult(null);
-    setError(null);
-  };
-
   return (
     <main className="min-h-screen px-4 py-10" style={BG}>
       <div className="max-w-2xl mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900" style={{ letterSpacing: "-0.02em" }}>Aqua</h1>
-          <p className="text-gray-500 mt-1 text-sm">
-            Personalized hydration — built around you, not a formula
-          </p>
-        </div>
-
-        {!hideStepIndicator && <StepIndicator current={stepIndex} />}
-
-        {loading && (
-          <div className="text-center py-16">
-            <div className="text-4xl animate-bounce mb-4"></div>
-            <p className="text-gray-500">Calculating your plan…</p>
+        {step !== "home" && (
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-gray-900" style={{ letterSpacing: "-0.02em" }}>Aqua</h1>
+            <p className="text-gray-500 mt-1 text-sm">
+              Personalized hydration — built around you, not a formula
+            </p>
           </div>
         )}
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 rounded-xl p-4 text-sm mb-4">
-            {error}
-            <button onClick={() => setError(null)} className="ml-2 underline">Dismiss</button>
-          </div>
+        {step === "login" && <LoginForm onLogin={() => setStep("name")} />}
+        {step === "name" && (
+          <PreferredNameForm onSubmit={(name) => { setPreferredName(name); setStep("profile"); }} />
         )}
-
-        {!loading && (
-          <>
-            {step === "login" && <LoginForm onLogin={() => setStep("name")} />}
-            {step === "name" && (
-              <PreferredNameForm onSubmit={(name) => { setPreferredName(name); setStep("profile"); }} />
-            )}
-            {step === "profile" && (
-              <ProfileForm initial={profile} onSubmit={handleProfile} preferredName={preferredName} />
-            )}
-            {step === "activityLevel" && (
-              <ActivityLevelForm
-                preferredName={preferredName}
-                onSubmit={() => setStep("hydrate")}
-                onBack={() => setStep("profile")}
-              />
-            )}
-            {step === "hydrate" && (
-              <HydrateScreen preferredName={preferredName} onHydrate={() => setStep("activities")} />
-            )}
-            {step === "activities" && (
-              <ActivityPicker onSubmit={handleActivities} onBack={() => setStep("hydrate")} />
-            )}
-            {step === "weather" && (
-              <WeatherCard onConfirm={handleWeather} onBack={() => setStep("activities")} />
-            )}
-            {step === "results" && result && (
-              <ResultsDashboard result={result} onReset={reset} preferredName={preferredName} />
-            )}
-          </>
+        {step === "profile" && (
+          <ProfileForm initial={profile} onSubmit={handleProfile} preferredName={preferredName} />
+        )}
+        {step === "activityLevel" && (
+          <ActivityLevelForm
+            preferredName={preferredName}
+            onSubmit={() => setStep("weather")}
+            onBack={() => setStep("profile")}
+          />
+        )}
+        {step === "weather" && (
+          <WeatherCard
+            onConfirm={(w) => { setWeather(w); setStep("home"); }}
+            onBack={() => setStep("activityLevel")}
+          />
+        )}
+        {step === "home" && profile && weather && (
+          <HomeScreen profile={profile} weather={weather} preferredName={preferredName} />
         )}
       </div>
     </main>

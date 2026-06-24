@@ -30,3 +30,23 @@ export interface HydrationResult {
   drinkSuggestions: string[];
   reasoning: string;
 }
+
+export interface PlannedActivity {
+  id: string;
+  sport: string;
+  emoji: string;
+  startTime: string;
+  endTime: string;
+  intensity?: "light" | "moderate" | "hard";
+  finished: boolean;
+  extraOz: number;
+}
+
+export interface LoggedActivity {
+  id: string;
+  sport: string;
+  emoji: string;
+  durationMin: number;
+  intensity: "light" | "moderate" | "hard";
+  extraOz: number;
+}
