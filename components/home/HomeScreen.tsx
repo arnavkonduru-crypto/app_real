@@ -297,6 +297,14 @@ export default function HomeScreen({ profile, weather, preferredName }: Props) {
         )}
       </div>
 
+      {/* Today's target */}
+      <div className="bg-white rounded-2xl p-5 shadow-sm space-y-1">
+        <p className="text-xs text-gray-400 uppercase tracking-widest font-medium mb-2">Today&apos;s target</p>
+        <div className="text-4xl font-black text-blue-600">{totalOz} <span className="text-2xl font-semibold">oz</span></div>
+        <p className="text-xs text-gray-400">Estimate based on humidity, temp, and your details</p>
+        {activityOz > 0 && <p className="text-xs text-blue-500">+{activityOz} oz from activities</p>}
+      </div>
+
       {/* Progress ring + log */}
       <div className="bg-white rounded-2xl p-6 shadow-sm flex flex-col items-center gap-3">
         <ProgressRing logged={intake} goal={totalOz} />
@@ -330,39 +338,6 @@ export default function HomeScreen({ profile, weather, preferredName }: Props) {
             </div>
           )}
         </div>
-      </div>
-
-      {/* Target */}
-      <div className="bg-white rounded-2xl p-5 shadow-sm space-y-1">
-        <p className="text-xs text-gray-400 uppercase tracking-widest font-medium mb-2">Today&apos;s target</p>
-        <div className="text-4xl font-black text-blue-600">{totalOz} <span className="text-2xl font-semibold">oz</span></div>
-        <p className="text-xs text-gray-400">Estimate based on humidity, temp, and your details</p>
-        {activityOz > 0 && <p className="text-xs text-blue-500">+{activityOz} oz from activities</p>}
-      </div>
-
-      {/* Electrolyte needs */}
-      <div className="grid grid-cols-3 gap-3">
-        {[
-          { label: "Sodium", value: baseline.sodiumMg, color: "text-orange-500" },
-          { label: "Potassium", value: baseline.potassiumMg, color: "text-green-600" },
-          { label: "Magnesium", value: baseline.magnesiumMg, color: "text-purple-600" },
-        ].map((e) => (
-          <div key={e.label} className="bg-white rounded-xl p-3 text-center shadow-sm">
-            <div className={`text-lg font-bold ${e.color}`}>{e.value}</div>
-            <div className="text-xs text-gray-400">{e.label} mg</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Electrolyte products */}
-      <div className="bg-white rounded-2xl p-4 shadow-sm space-y-2">
-        <p className="text-sm font-semibold text-gray-700 mb-1">Electrolytes</p>
-        <Accordion title="Electrolyte Mixes">
-          {ELECTROLYTE_MIXES.map((m) => <ElectrolyteRow key={m.name} item={m} />)}
-        </Accordion>
-        <Accordion title="Electrolyte Drinks">
-          {ELECTROLYTE_DRINKS.map((d) => <ElectrolyteRow key={d.name} item={d} />)}
-        </Accordion>
       </div>
 
       {/* Action buttons */}
@@ -419,49 +394,72 @@ export default function HomeScreen({ profile, weather, preferredName }: Props) {
         </div>
       )}
 
-      {/* Merged daily schedule */}
-      <div className="bg-white rounded-2xl p-4 shadow-sm space-y-2">
-        <p className="text-sm font-semibold text-gray-600">Today&apos;s Schedule</p>
-        {schedule.map((item, i) => {
-          if (item.kind === "hydration") {
-            return (
-              <div key={i} className="flex items-center gap-3 text-sm">
-                <span className="text-gray-400 w-20 shrink-0">{item.time}</span>
-                <div className="flex-1 bg-blue-100 rounded-full h-1.5 overflow-hidden">
-                  <div className="bg-blue-500 h-full rounded-full" style={{ width: `${Math.min(100, (item.oz / 16) * 100)}%` }} />
+      {/* Merged daily schedule — vertical timeline */}
+      <div className="bg-white rounded-2xl p-5 shadow-sm">
+        <p className="text-sm font-semibold text-gray-700 mb-4">📋 Today&apos;s Schedule</p>
+        <div className="relative pl-7">
+          {/* timeline spine */}
+          <div className="absolute left-[7px] top-1 bottom-1 w-px bg-gray-200" />
+          <div className="space-y-4">
+            {schedule.map((item, i) => {
+              if (item.kind === "hydration") {
+                return (
+                  <div key={i} className="relative">
+                    <span className="absolute -left-[26px] top-1 w-3.5 h-3.5 rounded-full bg-blue-500 ring-4 ring-blue-100" />
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-semibold text-gray-700">{item.time}</p>
+                        <p className="text-xs text-gray-400">{item.note}</p>
+                      </div>
+                      <span className="shrink-0 bg-blue-50 text-blue-600 text-sm font-bold px-3 py-1 rounded-full">{item.oz} oz</span>
+                    </div>
+                  </div>
+                );
+              }
+              if (item.kind === "activity") {
+                return (
+                  <div key={i} className="relative">
+                    <span className="absolute -left-[27px] top-1 w-4 h-4 rounded-full bg-purple-500 ring-4 ring-purple-100 flex items-center justify-center text-[8px]" />
+                    <div className="border border-purple-200 bg-purple-50 rounded-xl px-3 py-2.5">
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold text-purple-800 text-sm">{item.activity.emoji} {item.activity.sport}</span>
+                        <span className="text-xs text-purple-400">{item.activity.startTime} – {item.activity.endTime}</span>
+                      </div>
+                      <p className="text-xs text-purple-500 mt-1">💧 Sip 4–6 oz every 15–20 min during</p>
+                    </div>
+                  </div>
+                );
+              }
+              const label =
+                item.kind === "activity-pre"
+                  ? `Pre-${item.activity.sport} — drink 8 oz`
+                  : `Post-${item.activity.sport} — drink 8–12 oz`;
+              return (
+                <div key={i} className="relative">
+                  <span className="absolute -left-[24px] top-1.5 w-2.5 h-2.5 rounded-full bg-purple-300 ring-4 ring-purple-50" />
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium text-purple-600">{item.time}</p>
+                    <span className="text-xs text-purple-500">💧 {label}</span>
+                  </div>
                 </div>
-                <span className="text-blue-600 font-medium w-10 text-right">{item.oz} oz</span>
-              </div>
-            );
-          }
-          if (item.kind === "activity") {
-            return (
-              <div key={i} className="border border-purple-200 bg-purple-50 rounded-xl px-3 py-2">
-                <div className="flex items-center justify-between">
-                  <span className="font-semibold text-purple-800 text-sm">{item.activity.emoji} {item.activity.sport}</span>
-                  <span className="text-xs text-purple-400">{item.activity.startTime} – {item.activity.endTime}</span>
-                </div>
-                <p className="text-xs text-purple-500 mt-0.5">Sip 4–6 oz every 15–20 min during</p>
-              </div>
-            );
-          }
-          if (item.kind === "activity-pre") {
-            return (
-              <div key={i} className="flex items-center gap-3 text-sm">
-                <span className="text-purple-300 w-20 shrink-0">{item.time}</span>
-                <span className="text-purple-500 text-xs">💧 Pre-{item.activity.sport}: drink 8 oz</span>
-              </div>
-            );
-          }
-          if (item.kind === "activity-post") {
-            return (
-              <div key={i} className="flex items-center gap-3 text-sm">
-                <span className="text-purple-300 w-20 shrink-0">{item.time}</span>
-                <span className="text-purple-500 text-xs">💧 Post-{item.activity.sport}: drink 8–12 oz</span>
-              </div>
-            );
-          }
-        })}
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Share plan card */}
+      <div className="bg-white rounded-2xl p-4 shadow-sm">
+        <p className="text-sm font-semibold text-gray-700 mb-3">Share Your Progress</p>
+        <SharePlanCard
+          preferredName={preferredName}
+          drankOz={intake}
+          goalOz={totalOz}
+          bottleOz={bottleOz}
+          weather={weather}
+          sodiumMg={baseline.sodiumMg}
+          streak={streak}
+        />
       </div>
 
       {/* Custom bottle size */}
@@ -489,17 +487,28 @@ export default function HomeScreen({ profile, weather, preferredName }: Props) {
         </div>
       </div>
 
-      {/* Share plan card */}
-      <div className="bg-white rounded-2xl p-4 shadow-sm">
-        <p className="text-sm font-semibold text-gray-700 mb-3">Share Your Plan</p>
-        <SharePlanCard
-          preferredName={preferredName}
-          totalOz={totalOz}
-          bottles={bottles}
-          weather={weather}
-          sodiumMg={baseline.sodiumMg}
-          streak={streak}
-        />
+      {/* Electrolytes — target amounts + product options */}
+      <div className="bg-white rounded-2xl p-4 shadow-sm space-y-3">
+        <p className="text-sm font-semibold text-gray-700">Electrolytes</p>
+        <p className="text-xs text-gray-400 -mt-1">Your daily targets based on today&apos;s sweat losses.</p>
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { label: "Sodium", value: baseline.sodiumMg, color: "text-orange-500", bg: "bg-orange-50" },
+            { label: "Potassium", value: baseline.potassiumMg, color: "text-green-600", bg: "bg-green-50" },
+            { label: "Magnesium", value: baseline.magnesiumMg, color: "text-purple-600", bg: "bg-purple-50" },
+          ].map((e) => (
+            <div key={e.label} className={`${e.bg} rounded-xl p-3 text-center`}>
+              <div className={`text-lg font-bold ${e.color}`}>{e.value}<span className="text-xs font-medium ml-0.5">mg</span></div>
+              <div className="text-xs text-gray-400">{e.label}</div>
+            </div>
+          ))}
+        </div>
+        <Accordion title="Electrolyte Mixes">
+          {ELECTROLYTE_MIXES.map((m) => <ElectrolyteRow key={m.name} item={m} />)}
+        </Accordion>
+        <Accordion title="Electrolyte Drinks">
+          {ELECTROLYTE_DRINKS.map((d) => <ElectrolyteRow key={d.name} item={d} />)}
+        </Accordion>
       </div>
     </div>
   );
