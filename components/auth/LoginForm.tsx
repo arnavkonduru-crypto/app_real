@@ -21,9 +21,9 @@ export default function LoginForm({ onLogin }: { onLogin: () => void }) {
   return (
     <Card className="max-w-sm mx-auto">
       <div className="text-center mb-6">
-        <div className="text-4xl mb-2">💧</div>
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Welcome back</h2>
-        <p className="text-sm text-gray-500 mt-1">Sign in to your HydroAI account</p>
+        <div className="text-4xl mb-2"></div>
+        <h2 className="text-2xl font-bold text-gray-800">Welcome back</h2>
+        <p className="text-sm text-gray-500 mt-1">Sign in to your Aqua account</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
