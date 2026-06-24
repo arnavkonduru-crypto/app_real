@@ -43,3 +43,22 @@ body {
 .animate-marquee {
   animation: marquee 45s linear infinite;
 }
+
+@keyframes confetti {
+  0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+}
+
+.animate-confetti {
+  animation: confetti 3s linear forwards;
+}
+
+@keyframes pop {
+  0% { transform: scale(0.7); opacity: 0; }
+  60% { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.animate-pop {
+  animation: pop 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+}

@@ -1,9 +1,12 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { UserProfile, Weather, HydrationResult, PlannedActivity, LoggedActivity } from "@/lib/types";
+import { recordGoalHit, loadCurrentStreak, loadBottleSize, saveBottleSize } from "@/lib/storage";
 import AddActivityModal from "./AddActivityModal";
 import PlanActivityModal from "./PlanActivityModal";
 import FinishActivityModal from "./FinishActivityModal";
+import GoalReachedOverlay from "./GoalReachedOverlay";
+import SharePlanCard from "./SharePlanCard";
 
 interface Props {
   profile: UserProfile;
@@ -163,11 +166,46 @@ export default function HomeScreen({ profile, weather, preferredName }: Props) {
   const [showPlan, setShowPlan] = useState(false);
   const [finishTarget, setFinishTarget] = useState<PlannedActivity | null>(null);
 
+  const [streak, setStreak] = useState(0);
+  const [showGoalReached, setShowGoalReached] = useState(false);
+  const celebratedRef = useRef(false);
+
+  const [bottleOz, setBottleOz] = useState(BOTTLE_OZ);
+  const [bottleInput, setBottleInput] = useState("");
+
+  // Load saved streak + bottle size on mount (client only).
+  useEffect(() => {
+    setStreak(loadCurrentStreak());
+    const saved = loadBottleSize();
+    setBottleOz(saved);
+    setBottleInput(String(saved));
+  }, []);
+
   const activityOz =
     loggedActivities.reduce((s, a) => s + a.extraOz, 0) +
     plannedActivities.filter((a) => a.finished).reduce((s, a) => s + a.extraOz, 0);
   const totalOz = (baseline?.waterOz ?? 0) + activityOz;
-  const bottles = Math.ceil(totalOz / BOTTLE_OZ);
+  const bottles = bottleOz > 0 ? Math.ceil(totalOz / bottleOz) : 0;
+
+  // Fire the goal-reached celebration once when logged intake meets the target.
+  useEffect(() => {
+    if (totalOz > 0 && intake >= totalOz && !celebratedRef.current) {
+      celebratedRef.current = true;
+      const newStreak = recordGoalHit();
+      setStreak(newStreak);
+      setShowGoalReached(true);
+    }
+  }, [intake, totalOz]);
+
+  const applyBottleSize = () => {
+    const val = parseFloat(bottleInput);
+    if (!isNaN(val) && val > 0) {
+      setBottleOz(val);
+      saveBottleSize(val);
+    } else {
+      setBottleInput(String(bottleOz));
+    }
+  };
 
   const fetchBaseline = async (hours: number) => {
     setPhase("loading");
@@ -245,18 +283,26 @@ export default function HomeScreen({ profile, weather, preferredName }: Props) {
       {finishTarget && (
         <FinishActivityModal activity={finishTarget} weather={weather} onFinish={handleFinish} onClose={() => setFinishTarget(null)} />
       )}
+      {showGoalReached && (
+        <GoalReachedOverlay streak={streak} onClose={() => setShowGoalReached(false)} />
+      )}
 
-      {/* Greeting */}
-      <div className="text-center">
+      {/* Greeting + streak counter */}
+      <div className="flex items-center justify-between">
         <p className="text-sm text-gray-400 font-medium uppercase tracking-widest">{getGreeting()}, {preferredName}</p>
+        {streak > 0 && (
+          <div className="flex items-center gap-1.5 bg-orange-50 text-orange-500 font-bold text-sm px-3 py-1.5 rounded-full shadow-sm">
+            🔥 {streak} day{streak !== 1 ? "s" : ""}
+          </div>
+        )}
       </div>
 
       {/* Progress ring + log */}
       <div className="bg-white rounded-2xl p-6 shadow-sm flex flex-col items-center gap-3">
         <ProgressRing logged={intake} goal={totalOz} />
         <p className="text-sm text-gray-500">
-          ≈ <span className="font-semibold text-gray-700">{bottles}</span> plastic water bottles
-          <span className="text-gray-400 text-xs ml-1">(16.9 oz each)</span>
+          ≈ <span className="font-semibold text-gray-700">{bottles}</span> water bottles
+          <span className="text-gray-400 text-xs ml-1">({bottleOz} oz each)</span>
         </p>
         <div className="w-full pt-2 border-t border-gray-100">
           <p className="text-sm font-semibold text-gray-600 mb-1">💧 Log What You Drank</p>
@@ -416,6 +462,44 @@ export default function HomeScreen({ profile, weather, preferredName }: Props) {
             );
           }
         })}
+      </div>
+
+      {/* Custom bottle size */}
+      <div className="bg-white rounded-2xl p-4 shadow-sm">
+        <p className="text-sm font-semibold text-gray-700 mb-1">Your Water Bottle</p>
+        <p className="text-xs text-gray-400 mb-3">Set your bottle size so the bottle count matches what you actually drink from.</p>
+        <div className="flex items-center gap-2">
+          <input
+            type="number"
+            inputMode="decimal"
+            value={bottleInput}
+            onChange={(e) => setBottleInput(e.target.value)}
+            onBlur={applyBottleSize}
+            onKeyDown={(e) => e.key === "Enter" && applyBottleSize()}
+            className="input flex-1"
+            placeholder="16.9"
+          />
+          <span className="text-sm text-gray-500 font-medium">oz</span>
+          <button
+            onClick={applyBottleSize}
+            className="px-4 py-2 bg-gray-100 hover:bg-blue-50 hover:text-blue-700 rounded-xl text-sm font-semibold text-gray-700 transition-colors"
+          >
+            Save
+          </button>
+        </div>
+      </div>
+
+      {/* Share plan card */}
+      <div className="bg-white rounded-2xl p-4 shadow-sm">
+        <p className="text-sm font-semibold text-gray-700 mb-3">Share Your Plan</p>
+        <SharePlanCard
+          preferredName={preferredName}
+          totalOz={totalOz}
+          bottles={bottles}
+          weather={weather}
+          sodiumMg={baseline.sodiumMg}
+          streak={streak}
+        />
       </div>
     </div>
   );
