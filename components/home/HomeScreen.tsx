@@ -7,6 +7,7 @@ import PlanActivityModal from "./PlanActivityModal";
 import FinishActivityModal from "./FinishActivityModal";
 import GoalReachedOverlay from "./GoalReachedOverlay";
 import SharePlanCard from "./SharePlanCard";
+import PreEventPlanner from "./PreEventPlanner";
 
 interface Props {
   profile: UserProfile;
@@ -521,6 +522,13 @@ export default function HomeScreen({ profile, weather, preferredName }: Props) {
         </Accordion>
         <Accordion title="Electrolyte Drinks">
           {ELECTROLYTE_DRINKS.map((d) => <ElectrolyteRow key={d.name} item={d} />)}
+        </Accordion>
+      </div>
+
+      {/* Pre-event planner */}
+      <div className="bg-white rounded-2xl p-4 shadow-sm">
+        <Accordion title="🏁 Pre-Event Planner">
+          <PreEventPlanner profile={profile} weather={weather} />
         </Accordion>
       </div>
     </div>
