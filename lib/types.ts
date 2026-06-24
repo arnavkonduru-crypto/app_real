@@ -33,6 +33,7 @@ export interface HydrationResult {
 
 export interface PlannedActivity {
   id: string;
+  sportId: string;
   sport: string;
   emoji: string;
   startTime: string;
@@ -44,6 +45,7 @@ export interface PlannedActivity {
 
 export interface LoggedActivity {
   id: string;
+  sportId: string;
   sport: string;
   emoji: string;
   durationMin: number;

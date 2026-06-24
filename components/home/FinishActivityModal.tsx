@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { PlannedActivity, Weather } from "@/lib/types";
+import { calcActivityOz } from "@/lib/hydration";
 import Button from "@/components/ui/Button";
 
 interface Props {
@@ -8,14 +9,6 @@ interface Props {
   weather: Weather;
   onFinish: (id: string, intensity: "light" | "moderate" | "hard", extraOz: number) => void;
   onClose: () => void;
-}
-
-function calcOz(durationMin: number, intensity: "light" | "moderate" | "hard", weather: Weather): number {
-  const base = intensity === "light" ? 8 : intensity === "moderate" ? 12 : 20;
-  let oz = (base / 60) * durationMin;
-  if (weather.tempF >= 85) oz *= 1.25;
-  if (weather.humidity >= 70) oz *= 1.1;
-  return Math.round(oz);
 }
 
 function parseMinutes(start: string, end: string): number {
@@ -32,7 +25,7 @@ function parseMinutes(start: string, end: string): number {
 export default function FinishActivityModal({ activity, weather, onFinish, onClose }: Props) {
   const [intensity, setIntensity] = useState<"light" | "moderate" | "hard">("moderate");
   const durationMin = parseMinutes(activity.startTime, activity.endTime);
-  const oz = calcOz(durationMin, intensity, weather);
+  const oz = calcActivityOz(activity.sportId, durationMin, intensity, weather);
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">

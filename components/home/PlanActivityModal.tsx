@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { PlannedActivity, Weather } from "@/lib/types";
 import { ACTIVITY_LIST } from "@/components/activities/ACTIVITIES";
+import { calcActivityOz } from "@/lib/hydration";
 import Button from "@/components/ui/Button";
 
 interface Props {
@@ -28,13 +29,14 @@ export default function PlanActivityModal({ weather, onPlan, onClose }: Props) {
   const [endTime, setEndTime] = useState("10:00");
 
   const durationMin = timeDiffMinutes(startTime, endTime);
-  const baseOz = durationMin > 0 ? Math.round((12 / 60) * durationMin) : 0;
-  const extraOz = weather.tempF >= 85 ? Math.round(baseOz * 1.25) : baseOz;
+  // Estimate assumes moderate intensity; recalculated when the user finishes.
+  const extraOz = durationMin > 0 ? calcActivityOz(sport.id, durationMin, "moderate", weather) : 0;
 
   const handlePlan = () => {
     if (durationMin <= 0) return;
     onPlan({
       id: crypto.randomUUID(),
+      sportId: sport.id,
       sport: sport.name,
       emoji: sport.emoji,
       startTime: fmt12(startTime),

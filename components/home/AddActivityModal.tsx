@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { LoggedActivity, Weather } from "@/lib/types";
 import { ACTIVITY_LIST } from "@/components/activities/ACTIVITIES";
+import { calcActivityOz } from "@/lib/hydration";
 import Button from "@/components/ui/Button";
 
 interface Props {
@@ -12,25 +13,17 @@ interface Props {
 
 const DURATIONS = [15, 30, 45, 60, 90, 120];
 
-function calcExtraOz(durationMin: number, intensity: "light" | "moderate" | "hard", weather: Weather): number {
-  const base = intensity === "light" ? 8 : intensity === "moderate" ? 12 : 20;
-  const perMin = base / 60;
-  let oz = perMin * durationMin;
-  if (weather.tempF >= 85) oz *= 1.25;
-  if (weather.humidity >= 70) oz *= 1.1;
-  return Math.round(oz);
-}
-
 export default function AddActivityModal({ weather, onAdd, onClose }: Props) {
   const [sport, setSport] = useState<typeof ACTIVITY_LIST[number]>(ACTIVITY_LIST[0]);
   const [duration, setDuration] = useState(30);
   const [intensity, setIntensity] = useState<"light" | "moderate" | "hard">("moderate");
 
-  const extraOz = calcExtraOz(duration, intensity, weather);
+  const extraOz = calcActivityOz(sport.id, duration, intensity, weather);
 
   const handleAdd = () => {
     onAdd({
       id: crypto.randomUUID(),
+      sportId: sport.id,
       sport: sport.name,
       emoji: sport.emoji,
       durationMin: duration,
