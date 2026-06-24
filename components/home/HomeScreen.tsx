@@ -308,10 +308,23 @@ export default function HomeScreen({ profile, weather, preferredName }: Props) {
       {/* Progress ring + log */}
       <div className="bg-white rounded-2xl p-6 shadow-sm flex flex-col items-center gap-3">
         <ProgressRing logged={intake} goal={totalOz} />
-        <p className="text-sm text-gray-500">
-          ≈ <span className="font-semibold text-gray-700">{bottles}</span> water bottles
-          <span className="text-gray-400 text-xs ml-1">({bottleOz} oz each)</span>
-        </p>
+        {(() => {
+          const remaining = Math.max(0, totalOz - intake);
+          const bottlesLeft = bottleOz > 0 ? Math.round((remaining / bottleOz) * 2) / 2 : 0;
+          const done = bottlesLeft === 0 && intake >= totalOz;
+          return (
+            <p className="text-sm text-gray-500">
+              {done ? (
+                <span className="font-semibold text-green-600">Goal complete!</span>
+              ) : (
+                <>
+                  <span className="font-semibold text-gray-700">{bottlesLeft}</span> water bottle{bottlesLeft !== 1 ? "s" : ""} left
+                </>
+              )}
+              <span className="text-gray-400 text-xs ml-1">({bottleOz} oz each)</span>
+            </p>
+          );
+        })()}
         <div className="w-full pt-2 border-t border-gray-100">
           <p className="text-sm font-semibold text-gray-600 mb-1">💧 Log What You Drank</p>
           <p className="text-xs text-gray-400 mb-3">{intake} oz logged · {Math.max(0, totalOz - intake)} oz remaining</p>
