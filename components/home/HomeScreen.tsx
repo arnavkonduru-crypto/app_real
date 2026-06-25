@@ -215,6 +215,7 @@ export default function HomeScreen({ profile, weather, preferredName }: Props) {
       const res = await fetch("/api/hydration", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        cache: "no-store",
         body: JSON.stringify({ profile, weather, outdoorHours: hours }),
       });
       const data = await res.json();

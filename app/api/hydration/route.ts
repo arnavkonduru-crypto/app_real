@@ -4,6 +4,9 @@ import { UserProfile, Activity, Weather } from "@/lib/types";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
+// Never cache — every profile/condition combination must hit the model fresh.
+export const dynamic = "force-dynamic";
+
 export async function POST(req: NextRequest) {
   const { profile, weather, outdoorHours, activities } = (await req.json()) as {
     profile: UserProfile;
@@ -17,34 +20,41 @@ export async function POST(req: NextRequest) {
       ? "No planned exercise."
       : activities.map((a) => `${a.name} for ${a.durationMin} min at ${a.intensity} intensity`).join(", ");
 
-  const prompt = `You are a sports medicine and nutrition expert. Calculate a precise daily hydration plan.
+  // Weather only matters in proportion to how long the user is actually outside.
+  const weatherSection =
+    outdoorHours > 0
+      ? `OUTDOOR EXPOSURE: The user will spend about ${outdoorHours} hour(s) outdoors today.
+TODAY'S WEATHER (apply ONLY because of the outdoor exposure above — scale the adjustment by how many hours outside and how extreme conditions are):
+- Temperature: ${weather.tempF}°F
+- Humidity: ${weather.humidity}%
+- UV Index: ${weather.uvIndex} (${weather.description})`
+      : `OUTDOOR EXPOSURE: The user will be indoors essentially all day (0 hours outside). DO NOT apply any weather-based adjustment — weather is irrelevant when the user stays indoors in climate control.`;
 
-BASELINE METHODOLOGY (evidence-based — follow exactly):
-- The "waterOz" target represents ONLY plain water/beverages the user should actively DRINK. It must NOT include water obtained from food.
-- Start from total fluid Adequate Intake (U.S. National Academies of Medicine): ~125 oz/day total water for men, ~91 oz/day for women, for an average-sized sedentary adult in a temperate climate.
-- About 20% of total water comes from food, so subtract that: the beverage target is ~100 oz (men) / ~73 oz (women) before personalization.
-- Scale this by body weight relative to an average adult (men ~195 lb, women ~170 lb in the AI reference data), but keep the scaling gentle — do not let small people get extreme low values or large people extreme highs.
-- Sanity anchor: the result should land near "half the user's body weight in ounces" for a mild-weather day, and typically between 50 and 90 oz. Only exceed 90 oz for genuinely hot (85°F+), humid, or high-outdoor-exposure days.
-- Do NOT add water for planned exercise here — exercise is tracked separately. Be conservative; when uncertain, round down.
+  const prompt = `You are a sports medicine and nutrition expert. Produce a personalized daily DRINKING-water target for one specific person. Think carefully and let EVERY input below change the number — two different people must get different numbers.
 
-USER PROFILE:
+HOW TO REASON ABOUT THE BASELINE (the water they should drink, excluding water from food):
+- Anchor on the U.S. National Academies of Medicine Adequate Intake: ~125 oz/day TOTAL water for an average man, ~91 oz/day for an average woman. ~20% of that comes from food, so the amount to actually DRINK is roughly ~100 oz (men) / ~73 oz (women) for an average adult.
+- Then PERSONALIZE genuinely, adjusting up or down from that anchor based on ALL of:
+  - Body weight (heavier = more; this is the biggest factor) and height/build.
+  - Sex (men generally need more than women).
+  - Age (older adults often need slightly less per lb; teens/young adults slightly more).
+- These are guidelines, not a rigid formula. Use your judgment so the number genuinely reflects THIS person. Do not just output half their body weight.
+- Keep it sensible: for most adults the indoor baseline lands roughly between 45 and 95 oz.
+- Do NOT add water for planned exercise — that is tracked separately by the app.
+
+${weatherSection}
+
+PLANNED EXERCISE (for context only — do NOT add its water here): ${activitiesText}
+
+THIS PERSON:
 - Age: ${profile.age}
 - Weight: ${profile.weightLbs} lbs
 - Height: ${Math.floor(profile.heightIn / 12)}ft ${profile.heightIn % 12}in
 - Sex: ${profile.sex}
 
-TODAY'S WEATHER:
-- Temperature: ${weather.tempF}°F
-- Humidity: ${weather.humidity}%
-- UV Index: ${weather.uvIndex} (${weather.description})
-
-OUTDOOR EXPOSURE TODAY: ${outdoorHours} hour(s) of general outdoor time (walking, errands, etc.)
-
-PLANNED EXERCISE: ${activitiesText}
-
 Respond with ONLY valid JSON matching this exact structure (no markdown, no extra text):
 {
-  "waterOz": <number>,
+  "waterOz": <number, the personalized drinking-water target>,
   "waterMl": <number>,
   "sodiumMg": <number>,
   "potassiumMg": <number>,
@@ -53,7 +63,7 @@ Respond with ONLY valid JSON matching this exact structure (no markdown, no extr
     { "time": "7:00 AM", "oz": <number>, "note": "<short note>" }
   ],
   "drinkSuggestions": ["<suggestion 1>", "<suggestion 2>", "<suggestion 3>"],
-  "reasoning": "<2-3 sentences explaining the numbers based on weather, outdoor time, and activities>"
+  "reasoning": "<2-3 sentences explaining how this person's weight, sex, age, and (if outside) the weather shaped the number>"
 }`;
 
   try {
