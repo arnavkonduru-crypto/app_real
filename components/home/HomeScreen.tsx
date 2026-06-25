@@ -504,19 +504,21 @@ export default function HomeScreen({ profile, weather, preferredName }: Props) {
       {/* Electrolytes — target amounts + product options */}
       <div className="bg-white rounded-2xl p-4 shadow-sm space-y-3">
         <p className="text-sm font-semibold text-gray-700">Electrolytes</p>
-        <p className="text-xs text-gray-400 -mt-1">Your daily targets based on today&apos;s sweat losses.</p>
-        <div className="grid grid-cols-3 gap-3">
-          {[
-            { label: "Sodium", value: baseline.sodiumMg, color: "text-orange-500", bg: "bg-orange-50" },
-            { label: "Potassium", value: baseline.potassiumMg, color: "text-green-600", bg: "bg-green-50" },
-            { label: "Magnesium", value: baseline.magnesiumMg, color: "text-purple-600", bg: "bg-purple-50" },
-          ].map((e) => (
-            <div key={e.label} className={`${e.bg} rounded-xl p-3 text-center`}>
-              <div className={`text-lg font-bold ${e.color}`}>{e.value}<span className="text-xs font-medium ml-0.5">mg</span></div>
-              <div className="text-xs text-gray-400">{e.label}</div>
-            </div>
-          ))}
-        </div>
+        <Accordion title="Your Daily Targets">
+          <p className="text-xs text-gray-400 mb-1">Based on today&apos;s sweat losses.</p>
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { label: "Sodium", value: baseline.sodiumMg, color: "text-orange-500", bg: "bg-orange-50" },
+              { label: "Potassium", value: baseline.potassiumMg, color: "text-green-600", bg: "bg-green-50" },
+              { label: "Magnesium", value: baseline.magnesiumMg, color: "text-purple-600", bg: "bg-purple-50" },
+            ].map((e) => (
+              <div key={e.label} className={`${e.bg} rounded-xl p-3 text-center`}>
+                <div className={`text-lg font-bold ${e.color}`}>{e.value}<span className="text-xs font-medium ml-0.5">mg</span></div>
+                <div className="text-xs text-gray-400">{e.label}</div>
+              </div>
+            ))}
+          </div>
+        </Accordion>
         <Accordion title="Electrolyte Mixes">
           {ELECTROLYTE_MIXES.map((m) => <ElectrolyteRow key={m.name} item={m} />)}
         </Accordion>
