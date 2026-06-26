@@ -11,6 +11,13 @@ import PreEventPlanner from "./PreEventPlanner";
 
 type SectionId = "share" | "bottle" | "electrolytes" | "event";
 
+// Same stone texture the home screen / app shell uses, so panels blend in.
+const STONE_BG: React.CSSProperties = {
+  backgroundColor: "#f0ede8",
+  backgroundImage:
+    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E\")",
+};
+
 const MENU_ITEMS: { id: SectionId; emoji: string; label: string; desc: string }[] = [
   { id: "share",        emoji: "📤", label: "Share Progress",     desc: "Share today's hydration snapshot" },
   { id: "bottle",       emoji: "🍶", label: "Water Bottle Size",  desc: "Set your bottle so counts stay accurate" },
@@ -547,10 +554,10 @@ export default function HomeScreen({ profile, weather, preferredName }: Props) {
         <div className="fixed inset-0 z-50 overflow-y-auto">
           {/* Backdrop fills the area outside the panel */}
           <div className="absolute inset-0 bg-black/30" onClick={() => setActiveSection(null)} />
-          {/* Panel card — matches home-screen column width */}
-          <div className="relative max-w-lg mx-auto min-h-full bg-white shadow-xl flex flex-col">
+          {/* Panel card — matches home-screen column width + stone background */}
+          <div className="relative max-w-lg mx-auto min-h-full shadow-xl flex flex-col" style={STONE_BG}>
           {/* Panel header */}
-          <div className="flex items-center gap-3 px-4 pt-6 pb-4 border-b border-gray-100 bg-white sticky top-0 z-10">
+          <div className="flex items-center gap-3 px-4 pt-6 pb-4 border-b border-black/5 sticky top-0 z-10" style={STONE_BG}>
             <button
               onClick={() => setActiveSection(null)}
               className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors text-gray-600 text-lg"
