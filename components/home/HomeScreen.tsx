@@ -506,8 +506,8 @@ export default function HomeScreen({ profile, weather, preferredName }: Props) {
         <div className="fixed inset-0 z-50 flex">
           {/* Backdrop */}
           <div className="absolute inset-0 bg-black/40" onClick={() => setMenuOpen(false)} />
-          {/* Drawer */}
-          <div className="relative ml-auto w-[85%] max-w-sm h-full bg-white flex flex-col shadow-2xl">
+          {/* Drawer — slides in from the left to match the hamburger position */}
+          <div className="relative mr-auto w-[85%] max-w-sm h-full bg-white flex flex-col shadow-2xl">
             <div className="flex items-center justify-between px-5 pt-8 pb-5 border-b border-gray-100">
               <div>
                 <p className="text-xl font-black text-blue-600">Aqua</p>
@@ -542,11 +542,15 @@ export default function HomeScreen({ profile, weather, preferredName }: Props) {
         </div>
       )}
 
-      {/* ── Section full-screen panels ── */}
+      {/* ── Section panels — constrained to the same width as the home screen ── */}
       {activeSection && (
-        <div className="fixed inset-0 z-50 bg-white flex flex-col overflow-hidden">
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          {/* Backdrop fills the area outside the panel */}
+          <div className="absolute inset-0 bg-black/30" onClick={() => setActiveSection(null)} />
+          {/* Panel card — matches home-screen column width */}
+          <div className="relative max-w-lg mx-auto min-h-full bg-white shadow-xl flex flex-col">
           {/* Panel header */}
-          <div className="flex items-center gap-3 px-4 pt-10 pb-4 border-b border-gray-100 bg-white">
+          <div className="flex items-center gap-3 px-4 pt-6 pb-4 border-b border-gray-100 bg-white sticky top-0 z-10">
             <button
               onClick={() => setActiveSection(null)}
               className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors text-gray-600 text-lg"
@@ -561,7 +565,7 @@ export default function HomeScreen({ profile, weather, preferredName }: Props) {
           </div>
 
           {/* Panel body */}
-          <div className="flex-1 overflow-y-auto p-5 space-y-5">
+          <div className="flex-1 p-5 space-y-5">
             {activeSection === "share" && (
               <SharePlanCard
                 preferredName={preferredName}
@@ -631,6 +635,7 @@ export default function HomeScreen({ profile, weather, preferredName }: Props) {
             {activeSection === "event" && (
               <PreEventPlanner profile={profile} weather={weather} />
             )}
+          </div>
           </div>
         </div>
       )}
