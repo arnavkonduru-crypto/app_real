@@ -24,9 +24,6 @@ export default function Landing() {
 
         {/* Left: content */}
         <div className="w-full lg:w-1/2 flex flex-col justify-center px-10 lg:px-20 pt-24 bg-[#f0ede8]">
-          <p className="text-blue-600 font-black uppercase tracking-widest text-sm mb-3" style={{ fontFamily: "var(--font-heading)" }}>
-            Introducing
-          </p>
           <h1
             className="text-7xl lg:text-8xl font-black uppercase leading-none text-gray-900 mb-6"
             style={{ fontFamily: "var(--font-heading)" }}
