@@ -9,6 +9,15 @@ import GoalReachedOverlay from "./GoalReachedOverlay";
 import SharePlanCard from "./SharePlanCard";
 import PreEventPlanner from "./PreEventPlanner";
 
+type SectionId = "share" | "bottle" | "electrolytes" | "event";
+
+const MENU_ITEMS: { id: SectionId; emoji: string; label: string; desc: string }[] = [
+  { id: "share",        emoji: "📤", label: "Share Progress",     desc: "Share today's hydration snapshot" },
+  { id: "bottle",       emoji: "🍶", label: "Water Bottle Size",  desc: "Set your bottle so counts stay accurate" },
+  { id: "electrolytes", emoji: "⚡", label: "Electrolytes",       desc: "Daily targets & product guide" },
+  { id: "event",        emoji: "🏁", label: "Pre-Event Planner",  desc: "Race, game, or hike ramp-up plan" },
+];
+
 interface Props {
   profile: UserProfile;
   weather: Weather;
@@ -174,6 +183,9 @@ export default function HomeScreen({ profile, weather, preferredName }: Props) {
   const [bottleOz, setBottleOz] = useState(BOTTLE_OZ);
   const [bottleInput, setBottleInput] = useState("");
 
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState<SectionId | null>(null);
+
   // Load saved streak + bottle size on mount (client only).
   useEffect(() => {
     setStreak(loadCurrentStreak());
@@ -291,11 +303,22 @@ export default function HomeScreen({ profile, weather, preferredName }: Props) {
 
       {/* Greeting + streak counter */}
       <div className="flex items-center justify-between">
+        <button
+          onClick={() => setMenuOpen(true)}
+          aria-label="Open menu"
+          className="flex flex-col items-center justify-center gap-[5px] w-9 h-9 rounded-xl hover:bg-white/70 transition-colors"
+        >
+          <span className="block w-5 h-0.5 bg-gray-500 rounded-full" />
+          <span className="block w-5 h-0.5 bg-gray-500 rounded-full" />
+          <span className="block w-5 h-0.5 bg-gray-500 rounded-full" />
+        </button>
         <p className="text-sm text-gray-400 font-medium uppercase tracking-widest">{getGreeting()}, {preferredName}</p>
-        {streak > 0 && (
+        {streak > 0 ? (
           <div className="flex items-center gap-1.5 bg-orange-50 text-orange-500 font-bold text-sm px-3 py-1.5 rounded-full shadow-sm">
             🔥 {streak} day{streak !== 1 ? "s" : ""}
           </div>
+        ) : (
+          <div className="w-9" />
         )}
       </div>
 
@@ -463,77 +486,154 @@ export default function HomeScreen({ profile, weather, preferredName }: Props) {
         </div>
       </div>
 
-      {/* Share plan card */}
-      <div className="bg-white rounded-2xl p-4 shadow-sm">
-        <p className="text-sm font-semibold text-gray-700 mb-3">Share Your Progress</p>
-        <SharePlanCard
-          preferredName={preferredName}
-          drankOz={intake}
-          goalOz={totalOz}
-          bottleOz={bottleOz}
-          weather={weather}
-          sodiumMg={baseline.sodiumMg}
-          streak={streak}
-        />
+      {/* Hint to open menu */}
+      <div className="flex items-center justify-center">
+        <button
+          onClick={() => setMenuOpen(true)}
+          className="flex items-center gap-2 text-xs text-gray-400 hover:text-gray-600 transition-colors py-2 px-4 rounded-full hover:bg-white/60"
+        >
+          <span className="flex flex-col gap-[3px]">
+            <span className="block w-3.5 h-px bg-current rounded-full" />
+            <span className="block w-3.5 h-px bg-current rounded-full" />
+            <span className="block w-3.5 h-px bg-current rounded-full" />
+          </span>
+          More features
+        </button>
       </div>
 
-      {/* Custom bottle size */}
-      <div className="bg-white rounded-2xl p-4 shadow-sm">
-        <p className="text-sm font-semibold text-gray-700 mb-1">Your Water Bottle</p>
-        <p className="text-xs text-gray-400 mb-3">Set your bottle size so the bottle count matches what you actually drink from.</p>
-        <div className="flex items-center gap-2">
-          <input
-            type="number"
-            inputMode="decimal"
-            value={bottleInput}
-            onChange={(e) => setBottleInput(e.target.value)}
-            onBlur={applyBottleSize}
-            onKeyDown={(e) => e.key === "Enter" && applyBottleSize()}
-            className="input flex-1"
-            placeholder="16.9"
-          />
-          <span className="text-sm text-gray-500 font-medium">oz</span>
-          <button
-            onClick={applyBottleSize}
-            className="px-4 py-2 bg-gray-100 hover:bg-blue-50 hover:text-blue-700 rounded-xl text-sm font-semibold text-gray-700 transition-colors"
-          >
-            Save
-          </button>
-        </div>
-      </div>
-
-      {/* Electrolytes — target amounts + product options */}
-      <div className="bg-white rounded-2xl p-4 shadow-sm space-y-3">
-        <p className="text-sm font-semibold text-gray-700">Electrolytes</p>
-        <Accordion title="Your Daily Targets">
-          <p className="text-xs text-gray-400 mb-1">Based on today&apos;s sweat losses.</p>
-          <div className="grid grid-cols-3 gap-3">
-            {[
-              { label: "Sodium", value: baseline.sodiumMg, color: "text-orange-500", bg: "bg-orange-50" },
-              { label: "Potassium", value: baseline.potassiumMg, color: "text-green-600", bg: "bg-green-50" },
-              { label: "Magnesium", value: baseline.magnesiumMg, color: "text-purple-600", bg: "bg-purple-50" },
-            ].map((e) => (
-              <div key={e.label} className={`${e.bg} rounded-xl p-3 text-center`}>
-                <div className={`text-lg font-bold ${e.color}`}>{e.value}<span className="text-xs font-medium ml-0.5">mg</span></div>
-                <div className="text-xs text-gray-400">{e.label}</div>
+      {/* ── Hamburger menu overlay ── */}
+      {menuOpen && (
+        <div className="fixed inset-0 z-50 flex">
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black/40" onClick={() => setMenuOpen(false)} />
+          {/* Drawer */}
+          <div className="relative ml-auto w-[85%] max-w-sm h-full bg-white flex flex-col shadow-2xl">
+            <div className="flex items-center justify-between px-5 pt-8 pb-5 border-b border-gray-100">
+              <div>
+                <p className="text-xl font-black text-blue-600">Aqua</p>
+                <p className="text-xs text-gray-400">More features</p>
               </div>
-            ))}
+              <button
+                onClick={() => setMenuOpen(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors text-lg"
+              >
+                ×
+              </button>
+            </div>
+            <nav className="flex-1 overflow-y-auto p-4 space-y-2">
+              {MENU_ITEMS.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => { setActiveSection(item.id); setMenuOpen(false); }}
+                  className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-blue-50 transition-colors text-left group"
+                >
+                  <span className="text-3xl w-12 h-12 flex items-center justify-center bg-gray-100 group-hover:bg-blue-100 rounded-xl transition-colors">
+                    {item.emoji}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-gray-800 text-sm">{item.label}</p>
+                    <p className="text-xs text-gray-400 mt-0.5 truncate">{item.desc}</p>
+                  </div>
+                  <span className="text-gray-300 group-hover:text-blue-400 transition-colors">›</span>
+                </button>
+              ))}
+            </nav>
           </div>
-        </Accordion>
-        <Accordion title="Electrolyte Mixes">
-          {ELECTROLYTE_MIXES.map((m) => <ElectrolyteRow key={m.name} item={m} />)}
-        </Accordion>
-        <Accordion title="Electrolyte Drinks">
-          {ELECTROLYTE_DRINKS.map((d) => <ElectrolyteRow key={d.name} item={d} />)}
-        </Accordion>
-      </div>
+        </div>
+      )}
 
-      {/* Pre-event planner */}
-      <div className="bg-white rounded-2xl p-4 shadow-sm">
-        <Accordion title="🏁 Pre-Event Planner">
-          <PreEventPlanner profile={profile} weather={weather} />
-        </Accordion>
-      </div>
+      {/* ── Section full-screen panels ── */}
+      {activeSection && (
+        <div className="fixed inset-0 z-50 bg-white flex flex-col overflow-hidden">
+          {/* Panel header */}
+          <div className="flex items-center gap-3 px-4 pt-10 pb-4 border-b border-gray-100 bg-white">
+            <button
+              onClick={() => setActiveSection(null)}
+              className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors text-gray-600 text-lg"
+            >
+              ←
+            </button>
+            <div>
+              <p className="font-bold text-gray-800 text-base leading-tight">
+                {MENU_ITEMS.find((m) => m.id === activeSection)?.label}
+              </p>
+            </div>
+          </div>
+
+          {/* Panel body */}
+          <div className="flex-1 overflow-y-auto p-5 space-y-5">
+            {activeSection === "share" && (
+              <SharePlanCard
+                preferredName={preferredName}
+                drankOz={intake}
+                goalOz={totalOz}
+                bottleOz={bottleOz}
+                weather={weather}
+                sodiumMg={baseline.sodiumMg}
+                streak={streak}
+              />
+            )}
+
+            {activeSection === "bottle" && (
+              <div className="space-y-3">
+                <p className="text-sm text-gray-500">
+                  Set your bottle size so the bottle count on the home screen matches what you actually drink from.
+                </p>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    value={bottleInput}
+                    onChange={(e) => setBottleInput(e.target.value)}
+                    onBlur={applyBottleSize}
+                    onKeyDown={(e) => e.key === "Enter" && applyBottleSize()}
+                    className="input flex-1"
+                    placeholder="16.9"
+                  />
+                  <span className="text-sm text-gray-500 font-medium">oz</span>
+                  <button
+                    onClick={applyBottleSize}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-semibold transition-colors"
+                  >
+                    Save
+                  </button>
+                </div>
+                <p className="text-xs text-gray-400">Current: {bottleOz} oz per bottle</p>
+              </div>
+            )}
+
+            {activeSection === "electrolytes" && (
+              <div className="space-y-3">
+                <Accordion title="Your Daily Targets">
+                  <p className="text-xs text-gray-400 mb-2">Based on today&apos;s sweat losses.</p>
+                  <div className="grid grid-cols-3 gap-3">
+                    {[
+                      { label: "Sodium",    value: baseline.sodiumMg,    color: "text-orange-500", bg: "bg-orange-50" },
+                      { label: "Potassium", value: baseline.potassiumMg, color: "text-green-600",  bg: "bg-green-50" },
+                      { label: "Magnesium", value: baseline.magnesiumMg, color: "text-purple-600", bg: "bg-purple-50" },
+                    ].map((e) => (
+                      <div key={e.label} className={`${e.bg} rounded-xl p-3 text-center`}>
+                        <div className={`text-lg font-bold ${e.color}`}>{e.value}<span className="text-xs font-medium ml-0.5">mg</span></div>
+                        <div className="text-xs text-gray-400">{e.label}</div>
+                      </div>
+                    ))}
+                  </div>
+                </Accordion>
+                <Accordion title="Electrolyte Mixes">
+                  {ELECTROLYTE_MIXES.map((m) => <ElectrolyteRow key={m.name} item={m} />)}
+                </Accordion>
+                <Accordion title="Electrolyte Drinks">
+                  {ELECTROLYTE_DRINKS.map((d) => <ElectrolyteRow key={d.name} item={d} />)}
+                </Accordion>
+              </div>
+            )}
+
+            {activeSection === "event" && (
+              <PreEventPlanner profile={profile} weather={weather} />
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
