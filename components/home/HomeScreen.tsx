@@ -193,6 +193,12 @@ export default function HomeScreen({ profile, weather, preferredName }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<SectionId | null>(null);
 
+  const [showJoinTeam, setShowJoinTeam] = useState(false);
+  const [codeA, setCodeA] = useState("");
+  const [codeB, setCodeB] = useState("");
+  const [teamJoined, setTeamJoined] = useState(false);
+  const codeBRef = useRef<HTMLInputElement>(null);
+
   // Load saved streak + bottle size on mount (client only).
   useEffect(() => {
     setStreak(loadCurrentStreak());
@@ -308,6 +314,83 @@ export default function HomeScreen({ profile, weather, preferredName }: Props) {
         <GoalReachedOverlay streak={streak} onClose={() => setShowGoalReached(false)} />
       )}
 
+      {/* Join Team modal */}
+      {showJoinTeam && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/40">
+          <div className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl space-y-5">
+            {teamJoined ? (
+              <>
+                <div className="text-center space-y-2 py-4">
+                  <div className="text-5xl">🎉</div>
+                  <p className="text-xl font-bold text-gray-800">You&apos;re on the team!</p>
+                  <p className="text-sm text-gray-400">Your coach can now track your hydration progress.</p>
+                </div>
+                <button
+                  onClick={() => setShowJoinTeam(false)}
+                  className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-2xl transition-colors"
+                >
+                  Done
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="space-y-1">
+                  <h3 className="text-xl font-bold text-gray-800">Join a Team</h3>
+                  <p className="text-sm text-gray-400">Enter the 6-digit code your coach shared with you.</p>
+                </div>
+
+                {/* Code input — two 3-digit halves with a dash */}
+                <div className="flex items-center justify-center gap-3">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={3}
+                    value={codeA}
+                    placeholder="ABC"
+                    onChange={(e) => {
+                      const val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+                      setCodeA(val);
+                      if (val.length === 3) codeBRef.current?.focus();
+                    }}
+                    className="w-24 h-14 text-center text-2xl font-bold tracking-widest border-2 border-gray-200 focus:border-blue-500 rounded-2xl outline-none transition-colors"
+                  />
+                  <span className="text-3xl font-bold text-gray-300">–</span>
+                  <input
+                    ref={codeBRef}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={3}
+                    value={codeB}
+                    placeholder="XYZ"
+                    onChange={(e) => {
+                      const val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+                      setCodeB(val);
+                    }}
+                    className="w-24 h-14 text-center text-2xl font-bold tracking-widest border-2 border-gray-200 focus:border-blue-500 rounded-2xl outline-none transition-colors"
+                  />
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowJoinTeam(false)}
+                    className="flex-1 py-3 border border-gray-200 text-gray-600 font-semibold rounded-2xl hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    disabled={codeA.length < 3 || codeB.length < 3}
+                    onClick={() => setTeamJoined(true)}
+                    className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-200 text-white font-semibold rounded-2xl transition-colors"
+                  >
+                    Join Team
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Greeting + streak counter */}
       <div className="flex items-center justify-between">
         <button
@@ -320,13 +403,20 @@ export default function HomeScreen({ profile, weather, preferredName }: Props) {
           <span className="block w-5 h-0.5 bg-gray-500 rounded-full" />
         </button>
         <p className="text-sm text-gray-400 font-medium uppercase tracking-widest">{getGreeting()}, {preferredName}</p>
-        {streak > 0 ? (
-          <div className="flex items-center gap-1.5 bg-orange-50 text-orange-500 font-bold text-sm px-3 py-1.5 rounded-full shadow-sm">
-            🔥 {streak} day{streak !== 1 ? "s" : ""}
-          </div>
-        ) : (
-          <div className="w-9" />
-        )}
+        <div className="flex items-center gap-2">
+          {streak > 0 && (
+            <div className="flex items-center gap-1.5 bg-orange-50 text-orange-500 font-bold text-sm px-3 py-1.5 rounded-full shadow-sm">
+              🔥 {streak}
+            </div>
+          )}
+          <button
+            onClick={() => { setShowJoinTeam(true); setTeamJoined(false); setCodeA(""); setCodeB(""); }}
+            aria-label="Join a team"
+            className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/80 hover:bg-white shadow-sm text-blue-600 font-bold text-xl transition-colors"
+          >
+            +
+          </button>
+        </div>
       </div>
 
       {/* Today's target */}
